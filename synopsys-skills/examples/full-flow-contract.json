@@ -1,0 +1,254 @@
+{
+  "description": "Non-runnable technology contract example; supply qualified local inputs and report adapters before execution.",
+  "design": "counter-contract",
+  "top": "counter",
+  "rtl": [
+    "${BUNDLE_ROOT}/examples/counter/rtl/counter.sv"
+  ],
+  "sdc": "${BUNDLE_ROOT}/examples/counter/constraints.sdc",
+  "config_tcl": "${BUNDLE_ROOT}/examples/counter/chain-design.tcl",
+  "inputs": [
+    "${BUNDLE_ROOT}/examples/counter/design.tcl",
+    "${TARGET_DB}"
+  ],
+  "requirements": {
+    "clock_period_ns": 10,
+    "functional_reference": "Original examples/counter RTL and tb; example teaching specification only",
+    "corners": [],
+    "hard_limits": {
+      "wns_ns": {
+        "min": 0
+      },
+      "hold_wns_ns": {
+        "min": 0
+      }
+    },
+    "ir_em_required": false
+  },
+  "technology": {
+    "qualified": false,
+    "qualification_reference": "Supply reviewed technology provenance",
+    "tech_file": [],
+    "ndm_libraries": [],
+    "rc_models": [],
+    "layer_map": [],
+    "cell_gds": [],
+    "pg_recipe": [],
+    "extraction_recipe": [],
+    "drc_deck": [],
+    "lvs_deck": [],
+    "antenna_deck": []
+  },
+  "tools": {
+    "design-compiler": {
+      "executable": "dc_shell",
+      "script_option": "-f",
+      "startup_args": [
+        "-no_init"
+      ]
+    },
+    "ic-compiler-ii": {
+      "executable": "icc2_shell",
+      "script_option": "-file",
+      "startup_args": [
+        "-no_init"
+      ]
+    },
+    "primetime": {
+      "executable": "pt_shell",
+      "script_option": "-file",
+      "startup_args": [
+        "-no_init"
+      ]
+    },
+    "formality": {
+      "executable": "fm_shell",
+      "script_option": "-file",
+      "startup_args": [
+        "-no_init"
+      ]
+    },
+    "qualified-native-adapter": {
+      "executable": "${PYTHON}",
+      "script_option": null,
+      "startup_args": []
+    }
+  },
+  "stages": [
+    {
+      "id": "rtl",
+      "tool": "design-compiler",
+      "script": "${BUNDLE_ROOT}/templates/rtl-check.tcl",
+      "timeout_s": 3600,
+      "required_checks": [],
+      "artifacts": [],
+      "checkpoint_artifacts": []
+    },
+    {
+      "id": "constraints",
+      "tool": "design-compiler",
+      "script": "${BUNDLE_ROOT}/templates/dc-constraints.tcl",
+      "timeout_s": 3600,
+      "required_checks": [],
+      "artifacts": [],
+      "checkpoint_artifacts": []
+    },
+    {
+      "id": "synthesis",
+      "tool": "design-compiler",
+      "script": "${BUNDLE_ROOT}/templates/dc-synthesis.tcl",
+      "timeout_s": 3600,
+      "required_checks": [],
+      "artifacts": [
+        "outputs/mapped.v",
+        "outputs/mapped.ddc",
+        "outputs/mapped.sdc",
+        "outputs/synthesis.svf"
+      ],
+      "checkpoint_artifacts": [
+        "outputs/mapped.v",
+        "outputs/mapped.ddc",
+        "outputs/mapped.sdc",
+        "outputs/synthesis.svf"
+      ]
+    },
+    {
+      "id": "formal",
+      "tool": "formality",
+      "script": "${BUNDLE_ROOT}/templates/formality.tcl",
+      "timeout_s": 3600,
+      "required_checks": [],
+      "artifacts": [],
+      "checkpoint_artifacts": []
+    },
+    {
+      "id": "floorplan",
+      "tool": "ic-compiler-ii",
+      "script": "${BUNDLE_ROOT}/templates/icc2-floorplan.tcl",
+      "timeout_s": 3600,
+      "required_checks": [],
+      "artifacts": [
+        "outputs/design.ndm"
+      ],
+      "checkpoint_artifacts": [
+        "outputs/design.ndm"
+      ]
+    },
+    {
+      "id": "power",
+      "tool": "ic-compiler-ii",
+      "script": "${BUNDLE_ROOT}/templates/icc2-implement.tcl",
+      "timeout_s": 3600,
+      "required_checks": [],
+      "artifacts": [
+        "outputs/design.ndm"
+      ],
+      "checkpoint_artifacts": [
+        "outputs/design.ndm"
+      ]
+    },
+    {
+      "id": "placement",
+      "tool": "ic-compiler-ii",
+      "script": "${BUNDLE_ROOT}/templates/icc2-implement.tcl",
+      "timeout_s": 3600,
+      "required_checks": [
+        "functional_equivalence"
+      ],
+      "artifacts": [
+        "outputs/design.ndm"
+      ],
+      "checkpoint_artifacts": [
+        "outputs/design.ndm"
+      ]
+    },
+    {
+      "id": "cts",
+      "tool": "ic-compiler-ii",
+      "script": "${BUNDLE_ROOT}/templates/icc2-implement.tcl",
+      "timeout_s": 3600,
+      "required_checks": [
+        "functional_equivalence"
+      ],
+      "artifacts": [
+        "outputs/design.ndm"
+      ],
+      "checkpoint_artifacts": [
+        "outputs/design.ndm"
+      ]
+    },
+    {
+      "id": "routing",
+      "tool": "ic-compiler-ii",
+      "script": "${BUNDLE_ROOT}/templates/icc2-implement.tcl",
+      "timeout_s": 3600,
+      "required_checks": [
+        "functional_equivalence"
+      ],
+      "artifacts": [
+        "outputs/design.ndm"
+      ],
+      "checkpoint_artifacts": [
+        "outputs/design.ndm"
+      ]
+    },
+    {
+      "id": "extraction",
+      "tool": "qualified-native-adapter",
+      "script": "${BUNDLE_ROOT}/templates/needs-qualified-adapter.py",
+      "timeout_s": 3600,
+      "required_checks": [],
+      "artifacts": [],
+      "checkpoint_artifacts": []
+    },
+    {
+      "id": "timing",
+      "tool": "primetime",
+      "script": "${BUNDLE_ROOT}/templates/primetime.tcl",
+      "timeout_s": 3600,
+      "required_checks": [],
+      "artifacts": [],
+      "checkpoint_artifacts": []
+    },
+    {
+      "id": "physical",
+      "tool": "qualified-native-adapter",
+      "script": "${BUNDLE_ROOT}/templates/needs-qualified-adapter.py",
+      "timeout_s": 3600,
+      "required_checks": [],
+      "artifacts": [],
+      "checkpoint_artifacts": []
+    },
+    {
+      "id": "streamout",
+      "tool": "ic-compiler-ii",
+      "script": "${BUNDLE_ROOT}/templates/streamout.tcl",
+      "timeout_s": 3600,
+      "required_checks": [],
+      "artifacts": [
+        "outputs/final.gds"
+      ],
+      "checkpoint_artifacts": [],
+      "gds": "outputs/final.gds"
+    }
+  ],
+  "parameters": {
+    "synthesis_map_effort": "medium",
+    "core_utilization": 0.65
+  },
+  "allowed_parameters": {
+    "synthesis_map_effort": {
+      "choices": [
+        "medium",
+        "high"
+      ]
+    },
+    "core_utilization": {
+      "min": 0.45,
+      "max": 0.7
+    }
+  },
+  "max_attempts": 3,
+  "license_retries": 1,
+  "wall_budget_s": 14400
+}

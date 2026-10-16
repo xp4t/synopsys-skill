@@ -1,0 +1,46 @@
+{
+  "design": "counter",
+  "top": "counter",
+  "rtl": [
+    "${BUNDLE_ROOT}/examples/counter/rtl/counter.sv"
+  ],
+  "sdc": "${BUNDLE_ROOT}/examples/counter/constraints.sdc",
+  "config_tcl": "${BUNDLE_ROOT}/examples/counter/design.tcl",
+  "requirements": {
+    "clock_period_ns": 10
+  },
+  "tools": {
+    "dc": {
+      "executable": "dc_shell",
+      "startup_args": [
+        "-no_init"
+      ],
+      "script_option": "-f"
+    }
+  },
+  "stages": [
+    {
+      "id": "synthesis",
+      "tool": "dc",
+      "script": "${BUNDLE_ROOT}/templates/dc-synthesis.tcl",
+      "timeout_s": 90,
+      "artifacts": [
+        "outputs/mapped.ddc",
+        "outputs/mapped.v",
+        "outputs/mapped.sdc",
+        "outputs/synthesis.svf"
+      ],
+      "checkpoint_artifacts": [
+        "outputs/mapped.ddc",
+        "outputs/mapped.v",
+        "outputs/mapped.sdc",
+        "outputs/synthesis.svf"
+      ]
+    }
+  ],
+  "max_attempts": 1,
+  "inputs": [
+    "${BUNDLE_ROOT}/examples/counter/design.tcl",
+    "${TARGET_DB}"
+  ]
+}

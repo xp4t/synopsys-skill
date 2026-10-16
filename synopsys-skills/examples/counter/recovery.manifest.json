@@ -1,0 +1,45 @@
+{
+  "design": "counter",
+  "top": "counter",
+  "rtl": [
+    "${BUNDLE_ROOT}/examples/counter/rtl/counter.sv"
+  ],
+  "sdc": "${BUNDLE_ROOT}/examples/counter/constraints.sdc",
+  "config_tcl": "${BUNDLE_ROOT}/examples/counter/design.tcl",
+  "requirements": {
+    "clock_period_ns": 10
+  },
+  "tools": {
+    "dc": {
+      "executable": "dc_shell",
+      "startup_args": [
+        "-no_init"
+      ],
+      "script_option": "-f"
+    }
+  },
+  "stages": [
+    {
+      "id": "rtl",
+      "tool": "dc",
+      "script": "${BUNDLE_ROOT}/examples/counter/invalid-command.tcl",
+      "timeout_s": 35,
+      "recovery_candidates": [
+        {
+          "category": "invalid_command",
+          "reason": "Controlled validation: replace nonexistent command with installed DC RTL elaboration/check sequence",
+          "documentation": [
+            "Installed analyze manual; verify this command for the selected release"
+          ],
+          "changes": [],
+          "script": "${BUNDLE_ROOT}/templates/rtl-check.tcl"
+        }
+      ]
+    }
+  ],
+  "max_attempts": 2,
+  "inputs": [
+    "${BUNDLE_ROOT}/examples/counter/design.tcl",
+    "${TARGET_DB}"
+  ]
+}

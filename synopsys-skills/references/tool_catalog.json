@@ -1,0 +1,414 @@
+{
+  "design-compiler": {
+    "name": "Design Compiler",
+    "executable": "dc_shell",
+    "suggested_script_option": "-f",
+    "stages": [
+      {
+        "stage": "RTL",
+        "commands": "analyze elaborate link check_design",
+        "prerequisites": "Logical libraries and ordered sources must resolve every required reference."
+      },
+      {
+        "stage": "Constraints",
+        "commands": "read_sdc check_timing report_clock",
+        "prerequisites": "Inspect clock definitions, all interface delays, recovery/removal, exceptions and unconstrained endpoints."
+      },
+      {
+        "stage": "Mapping",
+        "commands": "compile compile_ultra",
+        "prerequisites": "Use compile -map_effort medium/high; compile_ultra needs its feature license and mode prerequisites."
+      },
+      {
+        "stage": "Inspection",
+        "commands": "report_area report_timing report_power report_qor",
+        "prerequisites": "Read units, activity assumptions and path coverage; power is an estimate without appropriate activity."
+      },
+      {
+        "stage": "Export",
+        "commands": "set_svf write_file write_sdc",
+        "prerequisites": "Enable SVF before transformations; emit mapped netlist and checkpoint together."
+      }
+    ]
+  },
+  "ic-compiler-ii": {
+    "name": "IC Compiler II",
+    "executable": "icc2_shell",
+    "suggested_script_option": "-file",
+    "stages": [
+      {
+        "stage": "Initialize",
+        "commands": "create_lib read_verilog link_block read_sdc",
+        "prerequisites": "create_lib -technology and -ref_libs; read_verilog -top; verify technology units and references."
+      },
+      {
+        "stage": "Floorplan",
+        "commands": "initialize_floorplan create_placement_blockage create_keepout_margin",
+        "prerequisites": "Set core utilization/offset or explicit dimensions. Check rows, macros, IO, halos and legal sites."
+      },
+      {
+        "stage": "Power",
+        "commands": "create_pg_ring_pattern create_pg_mesh_pattern set_pg_strategy compile_pg connect_pg_net check_pg_connectivity check_pg_drc",
+        "prerequisites": "Use foundry-reviewed nets, layer widths/pitches/vias; no generic universal PDN."
+      },
+      {
+        "stage": "Placement",
+        "commands": "place_opt check_legality report_congestion",
+        "prerequisites": "Start from a valid floorplan+PG checkpoint; assess local congestion, pin access and timing by scenario."
+      },
+      {
+        "stage": "CTS",
+        "commands": "clock_opt report_clock_qor report_timing",
+        "prerequisites": "Clock definitions, reference cells, routing rules and skew budgets must be established first."
+      },
+      {
+        "stage": "Route",
+        "commands": "route_auto route_opt check_routes",
+        "prerequisites": "Check unrouted nets, route DRC, antenna and setup/hold, then revalidate any logic ECO."
+      },
+      {
+        "stage": "Export",
+        "commands": "write_verilog write_sdc write_parasitics write_gds save_block save_lib",
+        "prerequisites": "RC/export syntax is tool-specific. GDS uses -layer_map and -merge_files for qualified cell views."
+      }
+    ]
+  },
+  "fusion-compiler": {
+    "name": "Fusion Compiler",
+    "executable": "fc_shell",
+    "suggested_script_option": "-file",
+    "stages": [
+      {
+        "stage": "Initialize",
+        "commands": "create_lib read_verilog link_block read_sdc",
+        "prerequisites": "Use a qualified Fusion init recipe to establish logical and physical references and scenarios."
+      },
+      {
+        "stage": "Synthesis",
+        "commands": "compile_fusion",
+        "prerequisites": "-check_only checks prerequisites. -list_only enumerates stages. Read allowed -from/-to stage values before restarting."
+      },
+      {
+        "stage": "Implementation",
+        "commands": "place_opt clock_opt route_auto route_opt",
+        "prerequisites": "Only resume at valid boundaries supported by this version and the saved block state."
+      },
+      {
+        "stage": "Queries/export",
+        "commands": "report_qor report_timing report_congestion save_block save_lib write_gds",
+        "prerequisites": "Read ICC2 shared manuals only when applicable to the live Fusion command registry."
+      }
+    ]
+  },
+  "primetime": {
+    "name": "PrimeTime",
+    "executable": "pt_shell",
+    "suggested_script_option": "-file",
+    "stages": [
+      {
+        "stage": "Load",
+        "commands": "read_db read_verilog link_design read_sdc",
+        "prerequisites": "Resolve every reference and validate clocks/IO delays; distinguish black boxes from permitted abstractions."
+      },
+      {
+        "stage": "Parasitics",
+        "commands": "read_parasitics report_annotated_parasitics",
+        "prerequisites": "Verify extraction corner, coupling policy and annotation coverage, not merely successful read."
+      },
+      {
+        "stage": "Analysis",
+        "commands": "update_timing check_timing report_analysis_coverage report_timing",
+        "prerequisites": "Run max/setup and min/hold at every required corner; inspect untested and unconstrained paths."
+      },
+      {
+        "stage": "Optional power/SI",
+        "commands": "report_power report_noise",
+        "prerequisites": "Feature/license/model prerequisites apply. Never infer IR/EM closure from STA."
+      }
+    ]
+  },
+  "formality": {
+    "name": "Formality",
+    "executable": "fm_shell",
+    "suggested_script_option": "-file",
+    "stages": [
+      {
+        "stage": "Setup",
+        "commands": "set_svf read_db",
+        "prerequisites": "Set SVF before reading designs. Plain read_db loads shared libraries into existing and future containers."
+      },
+      {
+        "stage": "Reference/implementation",
+        "commands": "read_verilog read_sverilog read_vhdl set_top",
+        "prerequisites": "Use explicit -r and -i containers for designs; choose parser from the actual source language."
+      },
+      {
+        "stage": "Compare",
+        "commands": "match verify",
+        "prerequisites": "Capture verify return value. Unresolved references and missing tops must stop the script immediately."
+      },
+      {
+        "stage": "Inspect/restart",
+        "commands": "report_failing_points report_unmatched_points report_aborted_points report_black_boxes report_dont_verify_points report_constants save_session restore_session",
+        "prerequisites": "Review proof coverage and all assumptions; save a session before diagnosis when possible."
+      }
+    ]
+  },
+  "vcs": {
+    "name": "VCS",
+    "executable": "vcs",
+    "suggested_script_option": null,
+    "stages": [
+      {
+        "stage": "Compiler help",
+        "commands": "vcs -help; vcs -ID",
+        "prerequisites": "Verify the installed driver and architecture image before compiling."
+      },
+      {
+        "stage": "Compile",
+        "commands": "vcs -full64 -sverilog -o simv rtl.sv tb.sv",
+        "prerequisites": "Use the configured executable and VCS_HOME matching that exact image."
+      },
+      {
+        "stage": "Simulate",
+        "commands": "./simv",
+        "prerequisites": "Require testbench assertions, expected completion marker and no errors; timeout incomplete tests."
+      },
+      {
+        "stage": "Debug",
+        "commands": "vlogan; vhdlan; verdi",
+        "prerequisites": "Multi-step/mixed-language compilation needs documented library mappings. Load waveforms with the Verdi skill."
+      }
+    ]
+  },
+  "verdi": {
+    "name": "Verdi",
+    "executable": "verdi",
+    "suggested_script_option": "-play",
+    "stages": [
+      {
+        "stage": "Invocation",
+        "commands": "verdi -help",
+        "prerequisites": "Lists driver switches and batch/playback behavior."
+      },
+      {
+        "stage": "Batch Tcl",
+        "commands": "verdi -batch -play script.tcl",
+        "prerequisites": "Use Tcl info commands/namespace inspection; retrieve GUI Tcl API documentation before API calls."
+      },
+      {
+        "stage": "Debug inputs",
+        "commands": "verdi -f sources.f -ssf waves.fsdb",
+        "prerequisites": "Filelist and dump must correspond to the same compiled design revision."
+      }
+    ]
+  },
+  "starrc": {
+    "name": "StarRC",
+    "executable": "StarXtract",
+    "suggested_script_option": null,
+    "stages": [
+      {
+        "stage": "Driver inspection",
+        "commands": "StarXtract -h; StarXtract -v",
+        "prerequisites": "Recorded usage exposes supported invocation flags; return status differs from actual extraction success."
+      },
+      {
+        "stage": "Diagnostic documentation",
+        "commands": "starrc_man SX-message_number",
+        "prerequisites": "Use a real message code from the log. starrc_man accepts diagnostic codes, not -help."
+      },
+      {
+        "stage": "Constraints Tcl",
+        "commands": "starrc_shell -no_init -file constraints.tcl",
+        "prerequisites": "This companion is a PrimeTime-related constraint interface; it is not proof that StarXtract accepts Tcl."
+      },
+      {
+        "stage": "Integrity utility",
+        "commands": "StarXtract -gdscheck layout.gds",
+        "prerequisites": "Flag is in installed usage. Inspect actual result; structural checking does not replace DRC/LVS."
+      }
+    ]
+  },
+  "ic-validator": {
+    "name": "IC Validator",
+    "executable": "icv",
+    "suggested_script_option": null,
+    "stages": [
+      {
+        "stage": "Usage/version",
+        "commands": "icv -usage; icv -V",
+        "prerequisites": "Inspect all driver and engine diagnostics; process status alone is insufficient."
+      },
+      {
+        "stage": "Runset",
+        "commands": "icv -rd run_details qualified_runset.rs",
+        "prerequisites": "-rd is documented in captured usage. Keep runset input selection in its approved recipe; do not invent process rules."
+      },
+      {
+        "stage": "Debug/reference",
+        "commands": "icv -cpp preprocessed.rs qualified_runset.rs",
+        "prerequisites": "Preprocessing can help inspect include/options when supported; it is not a completed DRC/LVS run."
+      }
+    ]
+  },
+  "hspice": {
+    "name": "PrimeSim HSPICE",
+    "executable": "hspice",
+    "suggested_script_option": null,
+    "stages": [
+      {
+        "stage": "Usage",
+        "commands": "hspice -h",
+        "prerequisites": "Lists input/output and threading switches."
+      },
+      {
+        "stage": "Circuit simulation",
+        "commands": "hspice -i circuit.sp -o result_prefix",
+        "prerequisites": "Input deck selects .op/.dc/.ac/.tran and measurements."
+      },
+      {
+        "stage": "Inspect",
+        "commands": "Read result_prefix.lis and measurement/waveform files",
+        "prerequisites": "Check job conclusion, convergence, expected analyses and measurement validity."
+      }
+    ]
+  },
+  "custom-compiler": {
+    "name": "Custom Compiler",
+    "executable": "custom_compiler",
+    "suggested_script_option": null,
+    "stages": [
+      {
+        "stage": "Wrapper inspection",
+        "commands": "custom_compiler --wrapper-help",
+        "prerequisites": "This switch is in the installed wrapper; application startup remains blocked."
+      },
+      {
+        "stage": "Tcl discovery",
+        "commands": "info commands; namespace children ::",
+        "prerequisites": "After environment repair, enumerate APIs and retrieve cc_tclref.pdf before invoking namespace commands."
+      },
+      {
+        "stage": "Custom flow",
+        "commands": "Use local cc_getting_started/cc_leuser/cc_seuser/cc_tclref procedures",
+        "prerequisites": "Document required OA/PDK semantics and checkpoints; no generic ICC2 Tcl substitutions."
+      }
+    ]
+  },
+  "ic-compiler": {
+    "name": "IC Compiler (legacy)",
+    "executable": "icc_shell",
+    "suggested_script_option": "-f",
+    "stages": [
+      {
+        "stage": "Initialize",
+        "commands": "create_mw_lib open_mw_lib read_verilog link",
+        "prerequisites": "Use installed ICC manuals and qualified legacy references, not create_lib NDM recipes."
+      },
+      {
+        "stage": "Floorplan/place",
+        "commands": "create_floorplan place_opt",
+        "prerequisites": "Validate actual legacy command options and technology prerequisites."
+      },
+      {
+        "stage": "CTS/route",
+        "commands": "clock_opt route_opt",
+        "prerequisites": "Restore a valid Milkyway checkpoint and inspect the stage-specific reports."
+      },
+      {
+        "stage": "Inspect/save",
+        "commands": "report_timing report_qor save_mw_cel",
+        "prerequisites": "Do not confuse a Milkyway cell with an ICC2 block label."
+      }
+    ]
+  },
+  "design-vision": {
+    "name": "Design Vision",
+    "executable": "design_vision",
+    "suggested_script_option": "-f",
+    "stages": [
+      {
+        "stage": "Load/inspect",
+        "commands": "read_ddc current_design report_hierarchy report_timing",
+        "prerequisites": "Use synthesis library/constraint context matching the saved design."
+      },
+      {
+        "stage": "Synthesis",
+        "commands": "analyze elaborate compile",
+        "prerequisites": "Delegate reproducible synthesis and formal gates to synopsys-design-compiler."
+      },
+      {
+        "stage": "Save",
+        "commands": "write_file write_sdc",
+        "prerequisites": "Treat any design modification as a new candidate requiring verification."
+      }
+    ]
+  },
+  "ndm-library-manager": {
+    "name": "NDM Library Manager",
+    "executable": "icc2_lm_shell",
+    "suggested_script_option": "-file",
+    "stages": [
+      {
+        "stage": "Workspace",
+        "commands": "create_workspace",
+        "prerequisites": "Retrieve the installed flow/technology options; choose a flow appropriate to supplied views."
+      },
+      {
+        "stage": "Read/check",
+        "commands": "read_db read_lef check_workspace",
+        "prerequisites": "Validate cell/view consistency, sites, layers, units and timing corners before commit."
+      },
+      {
+        "stage": "Commit",
+        "commands": "commit_workspace",
+        "prerequisites": "Write a new output library, then verify it loads into the intended implementation release."
+      }
+    ]
+  },
+  "vc-static": {
+    "name": "Embedded VC Static",
+    "executable": "vc_static_shell",
+    "suggested_script_option": "-file",
+    "stages": [
+      {
+        "stage": "Driver help",
+        "commands": "vc_static_shell -help",
+        "prerequisites": "Requires VC_STATIC_HOME; help lists -batch, -file/-f, -no_init and session switches."
+      },
+      {
+        "stage": "Tcl startup",
+        "commands": "vc_static_shell -no_init -batch -file script.tcl",
+        "prerequisites": "Validate startup and analysis capabilities against the configured installation."
+      }
+    ]
+  },
+  "vc-portable-stimulus": {
+    "name": "VC Portable Stimulus",
+    "executable": "vcps",
+    "suggested_script_option": null,
+    "stages": [
+      {
+        "stage": "Help",
+        "commands": "vcps -help",
+        "prerequisites": "Needs VCPS_HOME, unlike VCS_HOME used by the simulator."
+      },
+      {
+        "stage": "Compile",
+        "commands": "vcps -compile model.pss",
+        "prerequisites": "Installed help documents -f, -incdir and -vcps_dir."
+      },
+      {
+        "stage": "Solve",
+        "commands": "vcps -solve -root_action action_type -num_cases N -random_seed seed",
+        "prerequisites": "Choose values from the user verification plan; bound solve CPU/time."
+      },
+      {
+        "stage": "Map",
+        "commands": "vcps -map",
+        "prerequisites": "Retrieve target/executor options from captured usage before generating a runnable test."
+      }
+    ]
+  }
+}

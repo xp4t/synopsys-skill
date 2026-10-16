@@ -1,0 +1,41 @@
+{
+  "metric_stage": "synthesis",
+  "max_trials": 1,
+  "max_no_improvement": 1,
+  "wall_budget_s": 180,
+  "policy": {
+    "objective": "area_library_units",
+    "direction": "min",
+    "min_relative_improvement": 0.01,
+    "limits": {
+      "area_library_units": {
+        "max": 150
+      },
+      "worst_reported_slack_library_time_units": {
+        "min": 0
+      }
+    },
+    "guardrails": {
+      "worst_reported_slack_library_time_units": {
+        "direction": "max",
+        "max_regression": 0
+      }
+    }
+  },
+  "candidates": [
+    {
+      "category": "timing",
+      "reason": "Compare documented DC high mapping effort against medium while preserving the 10 ns teaching specification and equivalence gates",
+      "documentation": [
+        "Installed compile manual; verify this command for the selected release"
+      ],
+      "changes": [
+        {
+          "parameter": "synthesis_map_effort",
+          "old": "medium",
+          "new": "high"
+        }
+      ]
+    }
+  ]
+}
